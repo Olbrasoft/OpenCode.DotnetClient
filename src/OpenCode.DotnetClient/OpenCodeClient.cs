@@ -203,6 +203,59 @@ public class OpenCodeClient : IDisposable
         return new OpenCodeEventStream(_httpClient.BaseAddress?.ToString() ?? "http://localhost:4096");
     }
 
+    // TUI API Methods
+
+    /// <summary>
+    /// Append text to the current prompt in the TUI
+    /// </summary>
+    /// <param name="text">Text to append</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    public Task AppendPromptAsync(string text, CancellationToken cancellationToken = default)
+        => _api.AppendPromptAsync(new AppendPromptRequest { Text = text }, cancellationToken);
+
+    /// <summary>
+    /// Submit the current prompt in the TUI
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    public Task SubmitPromptAsync(CancellationToken cancellationToken = default)
+        => _api.SubmitPromptAsync(cancellationToken);
+
+    /// <summary>
+    /// Clear the current prompt in the TUI
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    public Task ClearPromptAsync(CancellationToken cancellationToken = default)
+        => _api.ClearPromptAsync(cancellationToken);
+
+    /// <summary>
+    /// Append text to the prompt and submit it (convenience method)
+    /// </summary>
+    /// <param name="text">Text to send</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    public async Task SendToTuiAsync(string text, CancellationToken cancellationToken = default)
+    {
+        await _api.AppendPromptAsync(new AppendPromptRequest { Text = text }, cancellationToken);
+        await Task.Delay(50, cancellationToken); // Small delay to ensure text is appended
+        await _api.SubmitPromptAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Execute a command in the TUI
+    /// </summary>
+    /// <param name="command">Command to execute</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    public Task ExecuteCommandAsync(string command, CancellationToken cancellationToken = default)
+        => _api.ExecuteCommandAsync(new ExecuteCommandRequest { Command = command }, cancellationToken);
+
+    /// <summary>
+    /// Show a toast notification in the TUI
+    /// </summary>
+    /// <param name="message">Toast message</param>
+    /// <param name="type">Toast type (info, success, warning, error)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    public Task ShowToastAsync(string message, string type = "info", CancellationToken cancellationToken = default)
+        => _api.ShowToastAsync(new ShowToastRequest { Message = message, Type = type }, cancellationToken);
+
     /// <summary>
     /// Dispose resources
     /// </summary>

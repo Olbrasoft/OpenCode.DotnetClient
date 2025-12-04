@@ -61,6 +61,38 @@ public interface IOpenCodeApi
     /// </summary>
     [Get("/session/{id}/todo")]
     Task<List<Todo>> GetTodosAsync(string id, [Query] string? directory = null, CancellationToken cancellationToken = default);
+
+    // TUI API
+
+    /// <summary>
+    /// Append text to the current prompt
+    /// </summary>
+    [Post("/tui/append-prompt")]
+    Task AppendPromptAsync([Body] AppendPromptRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Submit the current prompt
+    /// </summary>
+    [Post("/tui/submit-prompt")]
+    Task SubmitPromptAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Clear the current prompt
+    /// </summary>
+    [Post("/tui/clear-prompt")]
+    Task ClearPromptAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Execute a command
+    /// </summary>
+    [Post("/tui/execute-command")]
+    Task ExecuteCommandAsync([Body] ExecuteCommandRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Show a toast notification
+    /// </summary>
+    [Post("/tui/show-toast")]
+    Task ShowToastAsync([Body] ShowToastRequest request, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
