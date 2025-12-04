@@ -55,6 +55,12 @@ public interface IOpenCodeApi
     /// </summary>
     [Post("/session/{id}/abort")]
     Task<bool> AbortSessionAsync(string id, [Query] string? directory = null);
+
+    /// <summary>
+    /// Get todos for a session
+    /// </summary>
+    [Get("/session/{id}/todo")]
+    Task<List<Todo>> GetTodosAsync(string id, [Query] string? directory = null);
 }
 
 /// <summary>

@@ -14,12 +14,14 @@ This is a **Proof of Concept (POC)** .NET client for OpenCode API, built with:
 
 ## 🚀 Features
 
-- ✅ Session management (create, get, list, delete)
-- ✅ Send prompts to AI models
-- ✅ Retrieve messages from sessions
-- ✅ Async/await support
-- ✅ Type-safe API calls with Refit
-- ✅ Comprehensive unit and integration tests
+- ✅ **Session Management**: create, get, list, delete sessions
+- ✅ **Prompt Sending**: send prompts to AI models (sync + async)
+- ✅ **Message Retrieval**: fetch messages from sessions
+- ✅ **Todo Support**: get todo lists for sessions
+- ✅ **Event Streaming**: real-time SSE event streaming
+- ✅ **Type-Safe API**: Refit-based type-safe HTTP calls
+- ✅ **Async/Await**: full async support throughout
+- ✅ **Comprehensive Tests**: unit + integration tests
 
 ## 📦 Installation
 
@@ -83,6 +85,49 @@ Console.WriteLine($"Total messages: {messages.Count}");
 await client.DeleteSessionAsync(session.Id);
 ```
 
+### Event Streaming
+
+Listen to real-time events from OpenCode server:
+
+```csharp
+using var eventStream = client.CreateEventStream();
+
+await foreach (var globalEvent in eventStream.StreamGlobalEventsAsync())
+{
+    Console.WriteLine($"[{globalEvent.Payload.Type}] in {globalEvent.Directory}");
+
+    // Handle specific event types
+    switch (globalEvent.Payload.Type)
+    {
+        case "session.status":
+            Console.WriteLine("Session status changed");
+            break;
+        case "message.updated":
+            Console.WriteLine("Message was updated");
+            break;
+        case "todo.updated":
+            Console.WriteLine("Todo list changed");
+            break;
+        case "file.edited":
+            Console.WriteLine("File was edited");
+            break;
+    }
+}
+```
+
+### Todos
+
+Get todos for a session:
+
+```csharp
+var todos = await client.GetTodosAsync(session.Id);
+
+foreach (var todo in todos)
+{
+    Console.WriteLine($"[{todo.Status}] {todo.Content} (Priority: {todo.Priority})");
+}
+```
+
 ### Advanced Usage
 
 #### Custom HttpClient
@@ -140,17 +185,23 @@ await client.SendPromptAsyncAsync(
 OpenCode.DotnetClient/
 ├── src/
 │   └── OpenCode.DotnetClient/
-│       ├── Models/               # DTOs for API requests/responses
+│       ├── Models/                    # DTOs for API requests/responses
 │       │   ├── Session.cs
 │       │   ├── Message.cs
 │       │   ├── PromptRequest.cs
-│       │   └── PromptResponse.cs
-│       ├── IOpenCodeApi.cs       # Refit API interface
-│       └── OpenCodeClient.cs     # Main client wrapper
-└── tests/
-    └── OpenCode.DotnetClient.Tests/
-        ├── OpenCodeClientTests.cs      # Integration tests
-        └── OpenCodeClientUnitTests.cs  # Unit tests
+│       │   ├── PromptResponse.cs
+│       │   ├── Todo.cs
+│       │   └── OpenCodeEvent.cs       # Event models
+│       ├── IOpenCodeApi.cs            # Refit API interface
+│       ├── OpenCodeClient.cs          # Main client wrapper
+│       └── OpenCodeEventStream.cs     # SSE event streaming
+├── tests/
+│   └── OpenCode.DotnetClient.Tests/
+│       ├── OpenCodeClientTests.cs      # Integration tests
+│       └── OpenCodeClientUnitTests.cs  # Unit tests
+└── examples/
+    └── OpenCode.DotnetClient.Example/  # Example console app
+        └── Program.cs                  # Interactive example
 ```
 
 ## 🔧 API Reference
@@ -176,6 +227,12 @@ OpenCode.DotnetClient/
 
 **Session Control**
 - `Task<bool> AbortSessionAsync(string sessionId, string? directory = null)`
+
+**Todos**
+- `Task<List<Todo>> GetTodosAsync(string sessionId, string? directory = null)`
+
+**Event Streaming**
+- `OpenCodeEventStream CreateEventStream()`
 
 ## 🧪 Testing
 
@@ -224,22 +281,64 @@ Before running integration tests, start the OpenCode server:
 opencode serve --port 4096
 ```
 
+### Running the Example
+
+An interactive example application is included in the `examples` directory:
+
+```bash
+cd examples/OpenCode.DotnetClient.Example
+dotnet run
+```
+
+The example demonstrates:
+- **Event Streaming**: Real-time monitoring of all OpenCode events
+- **Interactive Sessions**: Chat with AI through the console
+- **Session Management**: List and manage active sessions
+- **Color-coded Output**: Beautiful terminal UI with ANSI colors
+
+See [examples/README.md](examples/README.md) for detailed usage instructions.
+
 ## 📝 Requirements
 
 - **.NET 10.0** or later
 - **OpenCode Server** running on http://localhost:4096 (for integration tests)
 
+## 🎯 Supported Events
+
+The client supports real-time streaming of these OpenCode events:
+
+### Session Events
+- `session.status` - Session status changes (running, idle, etc.)
+- `session.idle` - Session becomes idle
+
+### Message Events
+- `message.updated` - Message content updated
+- `message.removed` - Message deleted
+
+### Todo Events
+- `todo.updated` - Todo list changes (new todos, status updates)
+
+### File Events
+- `file.edited` - File was edited by AI
+- `file.watcher.updated` - File system watcher detected changes
+
+### Other Events
+- `server.instance.disposed` - Server instance cleanup
+- `lsp.client.diagnostics` - LSP diagnostics from language servers
+- `command.executed` - Command execution notifications
+- `installation.updated` - Installation updates
+- `installation.update-available` - New version available
+
 ## 🎯 Future Enhancements
 
 Possible improvements for a production-ready version:
 
-- **Streaming Support**: SSE for real-time responses
-- **Events System**: Observable events for session updates
 - **Error Handling**: Retry policies with Polly
 - **Configuration**: Strongly-typed configuration options
 - **NuGet Package**: Publish as reusable package
-- **Additional Endpoints**: Support for more OpenCode API features
+- **Additional Endpoints**: Support for more OpenCode API features (file operations, providers, etc.)
 - **CLI Tool**: Command-line interface for quick operations
+- **Enhanced Events**: Strongly-typed event parsing for all event types
 
 ## 📄 License
 

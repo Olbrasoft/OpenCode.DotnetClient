@@ -138,6 +138,21 @@ public class OpenCodeClient : IDisposable
         => _api.AbortSessionAsync(sessionId, directory);
 
     /// <summary>
+    /// Get todos for a session
+    /// </summary>
+    public Task<List<Todo>> GetTodosAsync(string sessionId, string? directory = null)
+        => _api.GetTodosAsync(sessionId, directory);
+
+    /// <summary>
+    /// Create an event stream to listen for global events
+    /// </summary>
+    /// <returns>Event stream handler</returns>
+    public OpenCodeEventStream CreateEventStream()
+    {
+        return new OpenCodeEventStream(_httpClient.BaseAddress?.ToString() ?? "http://localhost:4096");
+    }
+
+    /// <summary>
     /// Dispose resources
     /// </summary>
     public void Dispose()
