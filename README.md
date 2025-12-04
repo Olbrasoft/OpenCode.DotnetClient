@@ -18,10 +18,14 @@ This is a **Proof of Concept (POC)** .NET client for OpenCode API, built with:
 - ✅ **Prompt Sending**: send prompts to AI models (sync + async)
 - ✅ **Message Retrieval**: fetch messages from sessions
 - ✅ **Todo Support**: get todo lists for sessions
-- ✅ **Event Streaming**: real-time SSE event streaming
+- ✅ **Event Streaming**: real-time SSE event streaming with robust error handling
 - ✅ **Type-Safe API**: Refit-based type-safe HTTP calls
-- ✅ **Async/Await**: full async support throughout
+- ✅ **Async/Await**: full async support with cancellation tokens
+- ✅ **Dependency Injection**: proper HttpClient management with IHttpClientFactory support
+- ✅ **Error Handling**: custom exception types for different error scenarios
+- ✅ **Configuration**: flexible options for timeouts, base URL, and default model settings
 - ✅ **Comprehensive Tests**: unit + integration tests
+- ✅ **Production-Ready**: follows .NET best practices and clean code principles
 
 ## 📦 Installation
 
@@ -130,7 +134,63 @@ foreach (var todo in todos)
 
 ### Advanced Usage
 
-#### Custom HttpClient
+#### Configuration Options
+
+```csharp
+// Create client with custom configuration
+var options = new OpenCodeClientOptions
+{
+    BaseUrl = "http://localhost:4096",
+    Timeout = TimeSpan.FromMinutes(10),
+    DefaultProviderId = "anthropic",
+    DefaultModelId = "claude-3-5-sonnet-20241022",
+    ThrowOnError = true
+};
+
+using var client = new OpenCodeClient(options);
+```
+
+#### Dependency Injection (ASP.NET Core)
+
+**Recommended approach** for production applications to avoid socket exhaustion:
+
+```csharp
+// In Program.cs or Startup.cs
+builder.Services.AddHttpClient<OpenCodeClient>((serviceProvider, httpClient) =>
+{
+    httpClient.BaseAddress = new Uri("http://localhost:4096");
+    httpClient.Timeout = TimeSpan.FromMinutes(5);
+});
+
+// Or with IHttpClientFactory
+builder.Services.AddHttpClient("OpenCodeApi", client =>
+{
+    client.BaseAddress = new Uri("http://localhost:4096");
+    client.Timeout = TimeSpan.FromMinutes(5);
+});
+
+builder.Services.AddScoped<OpenCodeClient>(sp =>
+{
+    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+    var httpClient = httpClientFactory.CreateClient("OpenCodeApi");
+    return new OpenCodeClient(httpClient);
+});
+
+// Usage in controllers
+public class MyController : ControllerBase
+{
+    private readonly OpenCodeClient _openCodeClient;
+
+    public MyController(OpenCodeClient openCodeClient)
+    {
+        _openCodeClient = openCodeClient;
+    }
+}
+```
+
+#### Custom HttpClient (Simple Usage)
+
+For console applications or simple scenarios:
 
 ```csharp
 var httpClient = new HttpClient
@@ -140,6 +200,62 @@ var httpClient = new HttpClient
 };
 
 using var client = new OpenCodeClient(httpClient);
+```
+
+#### Error Handling
+
+The client includes custom exception types for better error handling:
+
+```csharp
+try
+{
+    var session = await client.CreateSessionAsync("My Session");
+    var response = await client.SendPromptAsync(
+        session.Id,
+        "Write a hello world function"
+    );
+}
+catch (OpenCodeConnectionException ex)
+{
+    // Connection failures (server unreachable, timeout)
+    Console.WriteLine($"Connection failed: {ex.Message}");
+}
+catch (OpenCodeApiException ex)
+{
+    // API errors (4xx, 5xx responses)
+    Console.WriteLine($"API error {ex.StatusCode}: {ex.Message}");
+    Console.WriteLine($"Response: {ex.ResponseContent}");
+}
+catch (OpenCodeException ex)
+{
+    // Other OpenCode errors
+    Console.WriteLine($"OpenCode error: {ex.Message}");
+}
+```
+
+#### Cancellation Support
+
+All async methods support cancellation tokens:
+
+```csharp
+using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+try
+{
+    var sessions = await client.GetSessionsAsync(
+        cancellationToken: cts.Token
+    );
+
+    var response = await client.SendPromptAsync(
+        sessionId: "ses_abc123",
+        prompt: "Long-running task...",
+        cancellationToken: cts.Token
+    );
+}
+catch (OperationCanceledException)
+{
+    Console.WriteLine("Operation was cancelled");
+}
 ```
 
 #### Working with Sessions
@@ -185,20 +301,22 @@ await client.SendPromptAsyncAsync(
 OpenCode.DotnetClient/
 ├── src/
 │   └── OpenCode.DotnetClient/
-│       ├── Models/                    # DTOs for API requests/responses
+│       ├── Models/                       # DTOs for API requests/responses
 │       │   ├── Session.cs
 │       │   ├── Message.cs
 │       │   ├── PromptRequest.cs
 │       │   ├── PromptResponse.cs
 │       │   ├── Todo.cs
-│       │   └── OpenCodeEvent.cs       # Event models
-│       ├── IOpenCodeApi.cs            # Refit API interface
-│       ├── OpenCodeClient.cs          # Main client wrapper
-│       └── OpenCodeEventStream.cs     # SSE event streaming
+│       │   └── OpenCodeEvent.cs          # Event models
+│       ├── IOpenCodeApi.cs               # Refit API interface
+│       ├── OpenCodeClient.cs             # Main client wrapper
+│       ├── OpenCodeClientOptions.cs      # Configuration options
+│       ├── OpenCodeException.cs          # Custom exception types
+│       └── OpenCodeEventStream.cs        # SSE event streaming
 ├── tests/
 │   └── OpenCode.DotnetClient.Tests/
-│       ├── OpenCodeClientTests.cs      # Integration tests
-│       └── OpenCodeClientUnitTests.cs  # Unit tests
+│       ├── OpenCodeClientTests.cs        # Integration tests
+│       └── OpenCodeClientUnitTests.cs    # Unit tests
 └── examples/
     └── OpenCode.DotnetClient.Example/  # Example console app
         └── Program.cs                  # Interactive example
@@ -331,14 +449,17 @@ The client supports real-time streaming of these OpenCode events:
 
 ## 🎯 Future Enhancements
 
-Possible improvements for a production-ready version:
+Possible improvements for future versions:
 
-- **Error Handling**: Retry policies with Polly
-- **Configuration**: Strongly-typed configuration options
-- **NuGet Package**: Publish as reusable package
-- **Additional Endpoints**: Support for more OpenCode API features (file operations, providers, etc.)
+- ✅ ~~Error Handling~~: **Implemented** - Custom exception types with detailed error information
+- ✅ ~~Configuration~~: **Implemented** - Strongly-typed OpenCodeClientOptions
+- **Retry Policies**: Add automatic retry with exponential backoff using Polly
+- **NuGet Package**: Publish as reusable package to nuget.org
+- **Additional Endpoints**: Support for more OpenCode API features (file operations, providers, models list, etc.)
 - **CLI Tool**: Command-line interface for quick operations
-- **Enhanced Events**: Strongly-typed event parsing for all event types
+- **Logging**: Integrate with ILogger for production-grade logging
+- **Metrics**: Add telemetry and metrics collection
+- **Connection Pooling**: Advanced HttpClient configuration for high-throughput scenarios
 
 ## 📄 License
 
