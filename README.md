@@ -1,5 +1,9 @@
 # OpenCode.DotnetClient
 
+[![Build](https://github.com/Olbrasoft/OpenCode.DotnetClient/actions/workflows/build.yml/badge.svg)](https://github.com/Olbrasoft/OpenCode.DotnetClient/actions/workflows/build.yml)
+[![Publish NuGet](https://github.com/Olbrasoft/OpenCode.DotnetClient/actions/workflows/publish-nuget.yml/badge.svg)](https://github.com/Olbrasoft/OpenCode.DotnetClient/actions/workflows/publish-nuget.yml)
+[![NuGet](https://img.shields.io/nuget/v/Olbrasoft.OpenCode.DotnetClient.svg)](https://www.nuget.org/packages/Olbrasoft.OpenCode.DotnetClient/)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/Olbrasoft.OpenCode.DotnetClient.svg)](https://www.nuget.org/packages/Olbrasoft.OpenCode.DotnetClient/)
 [![.NET](https://img.shields.io/badge/.NET-10.0-blue)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -28,6 +32,17 @@ This is a **Proof of Concept (POC)** .NET client for OpenCode API, built with:
 - ✅ **Production-Ready**: follows .NET best practices and clean code principles
 
 ## 📦 Installation
+
+### NuGet Package
+
+```bash
+dotnet add package Olbrasoft.OpenCode.DotnetClient
+```
+
+Or via Package Manager Console:
+```powershell
+Install-Package Olbrasoft.OpenCode.DotnetClient
+```
 
 ### Prerequisites
 
