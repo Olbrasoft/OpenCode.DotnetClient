@@ -22,6 +22,7 @@ This is a **Proof of Concept (POC)** .NET client for OpenCode API, built with:
 - ✅ **Prompt Sending**: send prompts to AI models (sync + async)
 - ✅ **Message Retrieval**: fetch messages from sessions
 - ✅ **Todo Support**: get todo lists for sessions
+- ✅ **TUI Control**: programmatically control terminal interface (append, submit, clear prompts, execute commands, show toasts)
 - ✅ **Event Streaming**: real-time SSE event streaming with robust error handling
 - ✅ **Type-Safe API**: Refit-based type-safe HTTP calls
 - ✅ **Async/Await**: full async support with cancellation tokens
@@ -310,6 +311,44 @@ await client.SendPromptAsyncAsync(
 );
 ```
 
+#### Terminal User Interface (TUI) API
+
+Control the OpenCode terminal interface programmatically:
+
+```csharp
+// Append text to the prompt input (without submitting)
+await client.AppendPromptAsync(
+    sessionId: "ses_abc123",
+    text: "Write a function to "
+);
+
+// Submit the current prompt (triggers AI processing)
+await client.SubmitPromptAsync("ses_abc123");
+
+// Clear the prompt input
+await client.ClearPromptAsync("ses_abc123");
+
+// Execute a command in the session
+await client.ExecuteCommandAsync(
+    sessionId: "ses_abc123",
+    command: "/help"
+);
+
+// Show a toast notification in the UI
+await client.ShowToastAsync(
+    sessionId: "ses_abc123",
+    message: "Operation completed successfully",
+    type: "success" // "success", "error", "info", "warning"
+);
+```
+
+**TUI API Use Cases:**
+- **AppendPrompt**: Build prompts incrementally from multiple sources
+- **SubmitPrompt**: Trigger AI processing after composing a prompt
+- **ClearPrompt**: Reset the input for a new interaction
+- **ExecuteCommand**: Run slash commands programmatically (`/help`, `/clear`, etc.)
+- **ShowToast**: Provide user feedback for background operations
+
 ## 🏗️ Architecture
 
 ```
@@ -363,6 +402,13 @@ OpenCode.DotnetClient/
 
 **Todos**
 - `Task<List<Todo>> GetTodosAsync(string sessionId, string? directory = null)`
+
+**Terminal User Interface (TUI) API**
+- `Task AppendPromptAsync(string sessionId, string text, string? directory = null)`
+- `Task SubmitPromptAsync(string sessionId, string? directory = null)`
+- `Task ClearPromptAsync(string sessionId, string? directory = null)`
+- `Task ExecuteCommandAsync(string sessionId, string command, string? directory = null)`
+- `Task ShowToastAsync(string sessionId, string message, string type = "info", string? directory = null)`
 
 **Event Streaming**
 - `OpenCodeEventStream CreateEventStream()`
