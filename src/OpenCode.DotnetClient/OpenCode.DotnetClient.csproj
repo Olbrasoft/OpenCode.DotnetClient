@@ -1,13 +1,35 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- NuGet Package Properties -->
+    <PackageId>Olbrasoft.OpenCode.DotnetClient</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Olbrasoft</Authors>
+    <Company>Olbrasoft</Company>
+    <Description>.NET client library for OpenCode server API. Provides type-safe HTTP client for session management, prompt sending, message retrieval, and real-time SSE event streaming.</Description>
+    <Copyright>© Olbrasoft 2025</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Olbrasoft/OpenCode.DotnetClient</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Olbrasoft/OpenCode.DotnetClient.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>OpenCode;AI;Agent;NET10;API;Client;LLM;Anthropic;Claude</PackageTags>
+    <PackageIcon>olbrasoft-opencode-client.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>Version 1.0.0: Initial release with session management, prompt sending, message retrieval, todo support, and SSE event streaming.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Refit" Version="9.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\olbrasoft-opencode-client.png" Pack="true" PackagePath="\" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>
